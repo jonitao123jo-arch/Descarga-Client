@@ -16,11 +16,11 @@ jobs:
         java-version: '8'
         distribution: 'temurin'
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew || true
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
 
     - name: Build with Gradle
-      run: ./gradlew setupDecompWorkspace jar || ./gradlew build
+      run: gradle jar || gradle build
       continue-on-error: true
 
     - name: Upload Artifact
