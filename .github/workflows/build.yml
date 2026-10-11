@@ -1,0 +1,60 @@
+name: Build Descarga Client
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:   # permite rodar manualmente pelo botão "Run workflow"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 8
+
+      # ForgeGradle 2.1 só funciona com Gradle 2.14.1.
+      # Se o repositório não tiver o wrapper, ele é gerado aqui.
+      - name: Garantir o Gradle Wrapper
+        run: |
+          if [ ! -f gradlew ]; then
+            wget -q https://services.gradle.org/distributions/gradle-2.14.1-bin.zip
+            unzip -q gradle-2.14.1-bin.zip
+            ./gradle-2.14.1/bin/gradle wrapper --gradle-version 2.14.1
+          fi
+          chmod +x gradlew
+
+      - name: Cache do Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('build.gradle') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Preparar workspace do Forge
+        run: ./gradlew setupCIWorkspace --no-daemon
+
+      - name: Compilar
+        run: ./gradlew build --no-daemon
+
+      - name: Renomear o .jar final
+        run: |
+          mkdir -p dist
+          JAR=$(ls build/libs/*.jar | grep -v -e sources -e dev | head -n 1)
+          cp "$JAR" dist/DescargaClient.jar
+
+      - name: Publicar o .jar como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: DescargaClient
+          path: dist/DescargaClient.jar
+          if-no-files-found: error
