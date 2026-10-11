@@ -2,6 +2,7 @@ buildscript {
     repositories {
         maven { url "https://gradle.org" }
         maven { url "https://minecraftforge.net" }
+        maven { url "https://cleanroommc.com" }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
@@ -19,4 +20,8 @@ minecraft {
     runDir = "run"
     mappings = "stable_22"
     makeObfSourceJar = false
+}
+
+repositories {
+    maven { url "https://cleanroommc.com" }
 }
